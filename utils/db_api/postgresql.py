@@ -83,3 +83,50 @@ class Database:
 
     async def drop_users(self):
         await self.execute("DROP TABLE Users", execute=True)
+
+
+    async def create_table_tasks(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS Tasks (
+        id SERIAL PRIMARY KEY,
+        task_name VARCHAR(255) NOT NULL,
+        user_id INTEGER,
+        FOREIGN KEY (user_id) REFERENCES Users(id)
+        );
+        """
+        await self.execute(sql, execute=True)
+
+    @staticmethod
+    def format_args(sql, parameters: dict):
+        sql += " AND ".join([
+            f"{item} = ${num}" for num, item in enumerate(parameters.keys(),
+                                                          start=1)
+        ])
+        return sql, tuple(parameters.values())
+
+    async def add_task(self,user_id, task_name):
+        sql = "INSERT INTO Tasks (user_id, task_name) VALUES($1, $2) returning *"
+        return await self.execute(sql,user_id, task_name, fetchrow=True)
+
+    async def select_all_tasks(self):
+        sql = "SELECT * FROM Tasks"
+        return await self.execute(sql, fetch=True)
+
+    async def select_task(self, **kwargs):
+        sql = "SELECT * FROM Tasks WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def count_tasks(self):
+        sql = "SELECT COUNT(*) FROM Tasks"
+        return await self.execute(sql, fetchval=True)
+
+    async def update_task_task_name(self, user_id, task_name):
+        sql = "UPDATE Tasks SET user_id=$1 WHERE task_name=$2"
+        return await self.execute(sql, user_id, task_name, execute=True)
+
+    async def delete_tasks(self):
+        await self.execute("DELETE FROM Tasks WHERE TRUE", execute=True)
+
+    async def drop_tasks(self):
+        await self.execute("DROP TABLE tasks", execute=True)

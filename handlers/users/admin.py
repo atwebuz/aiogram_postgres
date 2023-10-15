@@ -16,6 +16,8 @@ async def get_all_users(message: Message):
 async def get_all_users(message: Message):
     users = await db.select_all_users()
     count = await db.count_users()
+    owermsg = ""
+    await bot.send_message(chat_id=ADMINS[0], text=f"foydalanuvchi soni: {count} ta")
     for user in users:
         # print(user[3])
         user_id = user[0]
@@ -23,9 +25,10 @@ async def get_all_users(message: Message):
         user_usname = user[2]
         tg_id = user[3]
         msg = "\n".join([f"{user[1],user_id,user_full, user_usname, tg_id}"])
-        await bot.send_message(chat_id=ADMINS[0], text=f"{msg}")
-        await asyncio.sleep(0.05)
-    await bot.send_message(chat_id=ADMINS[0], text=f"foydalanuvchi soni: {count} ta")
+        # await bot.send_message(chat_id=ADMINS[0], text=f"{msg}")
+        owermsg += "\n"+msg
+    await bot.send_message(chat_id=ADMINS[0], text=f"{owermsg}")
+    # await asyncio.sleep(0.05)
     
 
 
